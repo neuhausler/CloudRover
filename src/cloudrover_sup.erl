@@ -57,13 +57,27 @@ init([]) ->
     {ok, Dispatch} = file:consult(filename:join(
                          [filename:dirname(code:which(?MODULE)),
                           "..", "priv", "dispatch.conf"])),
+    {ok, Config} = file:consult(filename:join(
+                         [filename:dirname(code:which(?MODULE)),
+                          "..", "priv", "cloudrover.conf"])),
+    {ok, Port} = get_option(port, Config),
+    {ok, LogDir} = get_option(log_dir, Config),
     WebConfig = [
                  {ip, Ip},
-                 {port, 8000},
-                 {log_dir, "priv/log"},
-                 {dispatch, Dispatch}],
+                 {port, Port},
+                 {log_dir, LogDir},
+                 {dispatch, Dispatch},
+				 {error_handler, cloudrover_error_handler}],
     Web = {webmachine_mochiweb,
            {webmachine_mochiweb, start, [WebConfig]},
            permanent, 5000, worker, [mochiweb_socket_server]},
     Processes = [Web],
     {ok, { {one_for_one, 10, 10}, Processes} }.
+
+
+get_option(Option, Options) ->
+    case lists:keytake(Option, 1, Options) of
+       false -> {ok, foo};
+       {value, {Option, Value}, _NewOptions} -> {ok, Value}
+    end.
+
