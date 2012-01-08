@@ -17,7 +17,7 @@
 %% @doc cloudrover startup code
 
 -module(cloudrover).
--author('author <author@example.com>').
+-author('Marcel Neuhausler').
 -export([start/0, start_link/0, stop/0]).
 
 ensure_started(App) ->

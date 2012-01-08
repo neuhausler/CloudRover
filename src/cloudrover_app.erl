@@ -16,7 +16,7 @@
 %% @doc Callbacks for the cloudrover application.
 
 -module(cloudrover_app).
--author('author <author@example.com>').
+-author('Marcel Neuhausler').
 
 -behaviour(application).
 -export([start/2,stop/1]).

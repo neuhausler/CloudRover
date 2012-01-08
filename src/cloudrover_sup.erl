@@ -13,11 +13,10 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
-
 %% @doc Supervisor for the cloudrover application.
 
 -module(cloudrover_sup).
--author('author <author@example.com>').
+-author('Marcel Neuhausler').
 
 -behaviour(supervisor).
 
