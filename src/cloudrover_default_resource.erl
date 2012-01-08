@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_resource).
+-module(cloudrover_default_resource).
 -export([init/1, to_html/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
@@ -21,4 +21,4 @@
 init([]) -> {ok, undefined}.
 
 to_html(ReqData, State) ->
-    {"<html><body>Hello, new world</body></html>", ReqData, State}.
+    {"<html><head><title>CloudRover</title></head><body>Hello, Earth!</body></html>", ReqData, State}.
