@@ -62,6 +62,8 @@ init([]) ->
                           "..", "priv", "cloudrover.conf"])),
     {ok, Port} = get_option(port, Config),
     {ok, LogDir} = get_option(log_dir, Config),
+	{ok, PidFile} = get_option(pid_file, Config),
+    ok = file:write_file(PidFile, os:getpid()),
     WebConfig = [
                  {ip, Ip},
                  {port, Port},
