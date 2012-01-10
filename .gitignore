@@ -2,5 +2,3 @@ ebin/
 priv/log/
 deps/
 
-
-priv/cloudrover.pid
