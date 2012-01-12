@@ -1,4 +1,3 @@
-%%-*- mode: erlang -*-
 %% @author Marcel Neuhausler
 %% @copyright 2012 Marcel Neuhausler
 %%
@@ -14,5 +13,12 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
-{[], cloudrover_default_resource, []}.
-{["base", accesskey, '*'], cloudrover_base_resource, []}.
+-module(cloudrover_base_resource).
+-export([init/1, to_html/2]).
+
+-include_lib("webmachine/include/webmachine.hrl").
+
+init([]) -> {ok, dict:new()}.
+
+to_html(ReqData, State) ->
+    {"<html><head><title>CloudRover</title></head><body>Base</body></html>", ReqData, State}.

@@ -14,5 +14,26 @@
 %%    limitations under the License.
 
 -module(cloudrover_controller).
+-compile(export_all).
+
+-record(state, {
+	id= notSet,
+	giturl= notSet
+	}).
 
 
+start_link() ->
+    register(?MODULE, Pid=spawn_link(?MODULE, init, [])),
+    Pid.
+
+terminate() ->
+    ?MODULE ! shutdown.
+
+init() ->
+    loop(#state{}).
+
+loop(State) ->
+    receive
+        shutdown ->
+            exit(shutdown)
+	end.
