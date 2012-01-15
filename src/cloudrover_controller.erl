@@ -16,24 +16,19 @@
 -module(cloudrover_controller).
 -compile(export_all).
 
--record(state, {
-	id= notSet,
-	giturl= notSet
-	}).
+-define(KEY, "key").
 
+setAccessKey(AccessKey, State) ->
+	NewState= dict:append(?KEY, AccessKey, State),
+	Response= "<html><head><title>CloudRover</title></head><body>done</body></html>",
+	{Response, NewState}.
 
-start_link() ->
-    register(?MODULE, Pid=spawn_link(?MODULE, init, [])),
-    Pid.
-
-terminate() ->
-    ?MODULE ! shutdown.
-
-init() ->
-    loop(#state{}).
-
-loop(State) ->
-    receive
-        shutdown ->
-            exit(shutdown)
+checkAccessKey(AccessKey, State) ->
+	{ok, MyAccessKey}= dict:find(?KEY, State),
+	if
+		MyAccessKey == AccessKey ->
+   			ok;
+		MyAccessKey /= AccessKey ->
+   			notOk
 	end.
+

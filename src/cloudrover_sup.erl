@@ -36,8 +36,7 @@ start_link() ->
 upgrade() ->
     {ok, {_, Specs}} = init([]),
 
-    Old = sets:from_list(
-            [Name || {Name, _, _, _} <- supervisor:which_children(?MODULE)]),
+    Old = sets:from_list([Name || {Name, _, _, _} <- supervisor:which_children(?MODULE)]),
     New = sets:from_list([Name || {Name, _, _, _, _, _} <- Specs]),
     Kill = sets:subtract(Old, New),
 
@@ -53,29 +52,48 @@ upgrade() ->
 %% @spec init([]) -> SupervisorTree
 %% @doc supervisor callback.
 init([]) ->
-    Ip = case os:getenv("WEBMACHINE_IP") of false -> "0.0.0.0"; Any -> Any end,
-    {ok, Dispatch} = file:consult(filename:join(
-                         [filename:dirname(code:which(?MODULE)),
-                          "..", "priv", "dispatch.conf"])),
-    {ok, Config} = file:consult(filename:join(
-                         [filename:dirname(code:which(?MODULE)),
-                          "..", "priv", "cloudrover.conf"])),
+    {ok, Dispatch} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "dispatch.conf"])),
+    {ok, Config} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
     {ok, Port} = get_option(port, Config),
     {ok, LogDir} = get_option(log_dir, Config),
 	{ok, PidFile} = get_option(pid_file, Config),
-    ok = file:write_file(PidFile, os:getpid()),
-    WebConfig = [
-                 {ip, Ip},
-                 {port, Port},
-                 {log_dir, LogDir},
-                 {dispatch, Dispatch},
-				 {error_handler, cloudrover_error_handler}],
-    Web = {webmachine_mochiweb,
-           {webmachine_mochiweb, start, [WebConfig]},
-           permanent, 5000, worker, [mochiweb_socket_server]},
-    Processes = [Web],
-    {ok, { {one_for_one, 10, 10}, Processes} }.
 
+    ok= file:write_file(PidFile, os:getpid()),
+
+    WebConfig = [
+		{ip, "0.0.0.0"},
+		{port, Port},
+		{log_dir, LogDir},
+		{dispatch, Dispatch},
+		{error_handler, cloudrover_error_handler}
+	],
+
+	StateServer =
+	{
+		cloudrover_stateserver,
+		{cloudrover_stateserver, start, []},
+		permanent,
+		5000,
+		worker,
+		[]
+	},
+	
+    WebServer =
+	{
+		webmachine_mochiweb,
+		{webmachine_mochiweb, start, [WebConfig]},
+		permanent,
+		5000,
+		worker,
+		[mochiweb_socket_server, cloudrover_stateserver]
+	},
+
+    Processes = [WebServer, StateServer],
+    {ok, { {one_for_all, 10, 10}, Processes} }.
+
+
+
+%% Utils
 
 get_option(Option, Options) ->
     case lists:keytake(Option, 1, Options) of
