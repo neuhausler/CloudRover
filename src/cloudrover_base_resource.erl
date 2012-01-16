@@ -24,7 +24,6 @@
 -define(DICT_CMD  , "dict").
 
 init([]) ->
-	error_logger:info_report("base_resource init called"),
 	{{trace, "/tmp"}, dict:new()}.
 %%	{ok, dict:new()}.
 
@@ -37,32 +36,30 @@ content_types_accepted(ReqData, State) ->
 
 
 forbidden(ReqData, State) ->
-    case dict:size(State) of
-        0 ->
-			case wrq:path_tokens(ReqData) of
-				[?SET_CMD] ->
-            		{false, ReqData, State};
-				_Other  ->
-					{true, ReqData, State}
-			end;
-        _ ->
-			Result= dict:find(accesskey, wrq:path_info(ReqData)),
-			case Result of
-				error ->
-					{true, ReqData, State};
-				{ok, AccessKey} ->
-					case cloudrover_controller:checkAccessKey(AccessKey, State) of
-						ok ->
-            				{false, ReqData, State};
-						notOk ->
+	case dict:find(accesskey, wrq:path_info(ReqData)) of
+		error ->
+			{true, ReqData, State};
+		{ok, AccessKey} ->
+    		case cloudrover_controller:accessKeySet() of
+        		false ->
+					case AccessKey == ?SET_CMD of
+						true ->
+	            			{false, ReqData, State};
+						false  ->
+							{true, ReqData, State}
+					end;
+        		true ->
+					case cloudrover_controller:checkAccessKey(AccessKey) of
+						true ->
+    						{false, ReqData, State};
+						false ->
 							{true, ReqData, State}
 					end
 			end
     end.
 
 resource_exists(ReqData, State) ->
-	Response= case wrq:path_tokens(ReqData) of
-		[?SET_CMD] -> ok;
+	Response = case wrq:path_tokens(ReqData) of
 		[?GIT_CMD] -> ok;
 		[?SCRIPT_CMD, _ScriptName] -> ok;
 		[?DICT_CMD, _KeyValue] -> ok;
@@ -75,16 +72,33 @@ resource_exists(ReqData, State) ->
 
 
 to_html(ReqData, State) ->
-	case wrq:path_tokens(ReqData) of
-		[?SET_CMD] ->
-			{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
-			{Response, NewState}= cloudrover_controller:setAccessKey(AccessKey, State),
-    		{Response, ReqData, NewState};
-		_Other ->
-    		{"<html><head><title>CloudRover</title></head><body>Base</body></html>", ReqData, State}
-	end.
+	{"<html><head><title>CloudRover</title></head><body>Base</body></html>", ReqData, State}.
 
 
 from_json(ReqData, State) ->
-    {true, ReqData, State}.
+	%% handle set AccessKey
+	case dict:find(accesskey, wrq:path_info(ReqData)) of
+		{ok, ?SET_CMD} ->
+			case mochijson:decode(wrq:req_body(ReqData)) of
+				{struct, JSONData} ->
+					case getValueFromJSON("accesskey", JSONData) of
+						{ok, Value} ->
+							cloudrover_controller:setAccessKey(Value),
+	    					{true, ReqData, State};
+						not_found ->
+							{false, ReqData, State}
+					end;
+				_Otherwise ->
+	    			{false, ReqData, State}
+			end;
+		_Otherwise ->
+    		{false, ReqData, State}
+	end.
 
+%% Utils
+
+getValueFromJSON(Key, JSONData) ->
+    case lists:keytake(Key, 1, JSONData) of
+       false -> not_found;
+       {value, {Key, Value}, _JSONData} -> {ok, Value}
+    end.

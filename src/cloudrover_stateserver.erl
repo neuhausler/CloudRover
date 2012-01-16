@@ -26,7 +26,7 @@
 
 start() ->
 	error_logger:info_report("stateserver start called"),
-    gen_server:start_link({local,?MODULE}, ?MODULE, [], []).
+	gen_server:start_link({local,?MODULE}, ?MODULE, [], []).
 
 setAccessKey(AccessKey)          -> gen_server:call(?MODULE, {setaccesskey, AccessKey}).
 getAccessKey()                   -> gen_server:call(?MODULE, getaccesskey).

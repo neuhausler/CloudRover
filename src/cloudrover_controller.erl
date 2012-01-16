@@ -18,17 +18,12 @@
 
 -define(KEY, "key").
 
-setAccessKey(AccessKey, State) ->
-	NewState= dict:append(?KEY, AccessKey, State),
-	Response= "<html><head><title>CloudRover</title></head><body>done</body></html>",
-	{Response, NewState}.
+accessKeySet() ->
+	cloudrover_stateserver:accessKeySet().
 
-checkAccessKey(AccessKey, State) ->
-	{ok, MyAccessKey}= dict:find(?KEY, State),
-	if
-		MyAccessKey == AccessKey ->
-   			ok;
-		MyAccessKey /= AccessKey ->
-   			notOk
-	end.
+setAccessKey(AccessKey) ->
+	cloudrover_stateserver:setAccessKey(AccessKey).
+
+checkAccessKey(AccessKey) ->
+	cloudrover_stateserver:correctAccessKey(AccessKey).
 
