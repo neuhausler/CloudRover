@@ -20,5 +20,5 @@
 
 init([]) -> {ok, nostate}.
 
-to_html(ReqData, State) ->
-    {"<html><head><title>CloudRover</title></head><body>Hello, Earth!</body></html>", ReqData, State}.
+to_html(ReqData, Context) ->
+    {"<html><head><title>CloudRover</title></head><body>Hello, Earth!</body></html>", ReqData, Context}.

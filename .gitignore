@@ -4,3 +4,7 @@ deps/
 
 
 .DS_Store
+
+.project
+
+.settings/org.erlide.core.prefs

@@ -16,8 +16,6 @@
 -module(cloudrover_controller).
 -compile(export_all).
 
--define(KEY, "key").
-
 accessKeySet() ->
 	cloudrover_stateserver:accessKeySet().
 
@@ -26,4 +24,10 @@ setAccessKey(AccessKey) ->
 
 checkAccessKey(AccessKey) ->
 	cloudrover_stateserver:correctAccessKey(AccessKey).
+
+setKeyValue(AccessKey, Key, Value) ->
+	cloudrover_stateserver:setKeyValue(AccessKey, Key, Value).
+
+getValueForKey(Key) ->
+	cloudrover_stateserver:getValueForKey(Key).
 
