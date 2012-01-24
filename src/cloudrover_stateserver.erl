@@ -19,7 +19,8 @@
 -record(state,
 	{
 		accessKey = undefined,
-		git = undefined,
+		gitSrc    = undefined,
+		gitSh     = undefined,
 		keyValueStore
 	}
 ).
@@ -28,16 +29,40 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% public APIs
--export([start/0, setAccessKey/1, getAccessKey/0, accessKeySet/0, correctAccessKey/1, setKeyValue/3, getValueForKey/1]).
+-export(
+   [
+		start/0,
+		setAccessKey/1,
+		getAccessKey/0,
+		accessKeySet/0,
+		correctAccessKey/1,
+		setGitSrc/2,
+		getGitSrc/0,
+		gitSrcSet/0,
+		setGitSh/2,
+		getGitSh/0,
+		gitShSet/0,
+		setKeyValue/3,
+		getValueForKey/1
+   ]).
 
 start() ->
 	error_logger:info_report("stateserver start called"),
 	gen_server:start_link({local,?MODULE}, ?MODULE, [], []).
 
+
 setAccessKey(AccessKey)          -> gen_server:call(?MODULE, {setaccesskey, AccessKey}).
 getAccessKey()                   -> gen_server:call(?MODULE,  getaccesskey).
 accessKeySet()                   -> gen_server:call(?MODULE,  accesskeyset).
 correctAccessKey(OtherAccessKey) -> gen_server:call(?MODULE, {correctaccesskey, OtherAccessKey}).
+
+setGitSrc(AccessKey, GitSrcUrl) -> gen_server:call(?MODULE, {setgitsrc, {AccessKey, GitSrcUrl}}).
+getGitSrc()                     -> gen_server:call(?MODULE,  getgitsrc).
+gitSrcSet()                     -> gen_server:call(?MODULE,  gitsrcset).
+
+setGitSh(AccessKey, GitShUrl) -> gen_server:call(?MODULE, {setgitsh, {AccessKey, GitShUrl}}).
+getGitSh()                    -> gen_server:call(?MODULE,  getgitsh).
+gitShSet()                    -> gen_server:call(?MODULE,  gitshset).
 
 setKeyValue(AccessKey, Key, Value) -> gen_server:call(?MODULE, {setkeyvalue, {AccessKey, Key, Value}}).
 getValueForKey(Key)                -> gen_server:call(?MODULE, {getvalueforkey, Key}).
@@ -48,6 +73,8 @@ getValueForKey(Key)                -> gen_server:call(?MODULE, {getvalueforkey, 
 init([]) ->
 	error_logger:info_report("stateserver init called"),
 	{ok, #state{keyValueStore = dict:new()}}.
+
+
 
 handle_call({setaccesskey, AccessKey}, _From, Context) ->
 	error_logger:info_report("stateserver setaccesskey called"),
@@ -79,6 +106,80 @@ handle_call({correctaccesskey, OtherAccessKey}, _From, Context) ->
     Response = accessKeyOk(Context, OtherAccessKey),
     {reply, Response, Context};
 
+
+
+handle_call({setgitsrc, {AccessKey, GitSrcUrl}}, _From, Context) ->
+	error_logger:info_report("stateserver setgitsrc called"),
+	Response = case accessKeyOk(Context, AccessKey) of
+		false ->
+			NewContext = Context,
+			accesskey_problem;
+		true ->
+		    case Context#state.gitSrc of
+		        undefined ->
+		            NewContext = Context#state{gitSrc= GitSrcUrl},
+		            ok;
+		        _OtherWise ->
+					NewContext = Context,
+		    		already_set
+			end
+    end,
+    {reply, Response, NewContext};
+
+handle_call(getgitsrc, _From, Context) ->
+    Response = case Context#state.gitSrc of
+        undefined ->
+            not_found;
+        GitSrcUrl ->
+        	GitSrcUrl
+    end,
+    {reply, Response, Context};
+
+handle_call(gitsrcset, _From, Context) ->
+	Response = case Context#state.gitSrc of
+		undefined  -> false;
+		_OtherWise -> true
+	end,
+    {reply, Response, Context};
+
+
+
+handle_call({setgitsh, {AccessKey, GitShUrl}}, _From, Context) ->
+	error_logger:info_report("stateserver setgitsh called"),
+	Response = case accessKeyOk(Context, AccessKey) of
+		false ->
+			NewContext = Context,
+			accesskey_problem;
+		true ->
+		    case Context#state.gitSh of
+		        undefined ->
+		            NewContext = Context#state{gitSh= GitShUrl},
+		            ok;
+		        _OtherWise ->
+					NewContext = Context,
+		    		already_set
+			end
+    end,
+    {reply, Response, NewContext};
+
+handle_call(getgitsh, _From, Context) ->
+    Response = case Context#state.gitSh of
+        undefined ->
+            not_found;
+        GitShUrl ->
+        	GitShUrl
+    end,
+    {reply, Response, Context};
+
+handle_call(gitshset, _From, Context) ->
+	Response = case Context#state.gitSh of
+		undefined  -> false;
+		_OtherWise -> true
+	end,
+    {reply, Response, Context};
+
+
+
 handle_call({setkeyvalue, {AccessKey, Key, Value}}, _From, Context) ->
 	CleanedKeyValueStore = dict:erase(Key, Context#state.keyValueStore),
     Response = case accessKeyOk(Context, AccessKey) of
@@ -98,7 +199,8 @@ handle_call({getvalueforkey, Key}, _From, Context) ->
 		error -> not_found
 	end,
     {reply, Response, Context};
-	
+
+
 handle_call(stop, _From, State) ->
     {stop, normal, stopped, State};
 
