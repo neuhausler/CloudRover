@@ -31,7 +31,7 @@
 %% public APIs
 -export(
    [
-		start/0,
+		start/1,
 		setAccessKey/1,
 		getAccessKey/0,
 		accessKeySet/0,
@@ -46,7 +46,7 @@
 		getValueForKey/1
    ]).
 
-start() ->
+start(_Config) ->
 	error_logger:info_report("stateserver start called"),
 	gen_server:start_link({local,?MODULE}, ?MODULE, [], []).
 

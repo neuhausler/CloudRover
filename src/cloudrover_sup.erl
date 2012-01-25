@@ -53,10 +53,11 @@ upgrade() ->
 %% @doc supervisor callback.
 init([]) ->
     {ok, Dispatch} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "dispatch.conf"])),
-    {ok, Config} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
-    {ok, Port} = get_option(port, Config),
-    {ok, LogDir} = get_option(log_dir, Config),
-	{ok, PidFile} = get_option(pid_file, Config),
+    {ok, Config}   = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
+    {ok, Port}     = get_option(port, Config),
+    {ok, LogDir}   = get_option(log_dir, Config),
+    {ok, WorkDir}  = get_option(work_dir, Config),
+	{ok, PidFile}  = get_option(pid_file, Config),
 
     ok= file:write_file(PidFile, os:getpid()),
 
@@ -67,11 +68,15 @@ init([]) ->
 		{dispatch, Dispatch},
 		{error_handler, cloudrover_error_handler}
 	],
+	
+	StateServerConfig = [
+		{work_dir, WorkDir}
+	], 
 
 	StateServer =
 	{
 		cloudrover_stateserver,
-		{cloudrover_stateserver, start, []},
+		{cloudrover_stateserver, start, [StateServerConfig]},
 		permanent,
 		5000,
 		worker,

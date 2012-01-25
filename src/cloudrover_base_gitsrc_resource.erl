@@ -30,22 +30,7 @@ content_types_accepted(ReqData, Context) ->
     {[{"application/json", from_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
-	case dict:find(accesskey, wrq:path_info(ReqData)) of
-		error ->
-			{true, ReqData, Context};
-		{ok, AccessKey} ->
-    		case cloudrover_controller:accessKeySet() of
-        		false ->
-					{true, ReqData, Context};
-        		true ->
-					case cloudrover_controller:checkAccessKey(AccessKey) of
-						true ->
-    						{false, ReqData, Context};
-						false ->
-							{true, ReqData, Context}
-					end
-			end
-    end.
+	cloudrover_base_utils:forbidden(ReqData, Context).
 
 from_json(ReqData, Context) ->
 	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),

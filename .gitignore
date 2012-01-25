@@ -8,3 +8,5 @@ deps/
 .project
 
 .settings/org.erlide.core.prefs
+
+var/cloudrover.pid

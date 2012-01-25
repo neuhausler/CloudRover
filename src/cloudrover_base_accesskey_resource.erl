@@ -40,7 +40,7 @@ forbidden(ReqData, Context) ->
 from_json(ReqData, Context) ->
 	case mochijson:decode(wrq:req_body(ReqData)) of
 		{struct, JSONData} ->
-			case getValueFromJSON("accesskey", JSONData) of
+			case cloudrover_base_utils:getValueFromJSON("accesskey", JSONData) of
 				{ok, Value} ->
 					cloudrover_controller:setAccessKey(Value),
 					{true, ReqData, Context};
@@ -52,9 +52,3 @@ from_json(ReqData, Context) ->
 	end.
 
 %% Utils
-
-getValueFromJSON(Key, JSONData) ->
-    case lists:keytake(Key, 1, JSONData) of
-       false -> not_found;
-       {value, {Key, Value}, _JSONData} -> {ok, Value}
-    end.
