@@ -21,6 +21,7 @@
 		accessKey = undefined,
 		gitSrc    = undefined,
 		gitSh     = undefined,
+		workDir   = undefined,
 		keyValueStore
 	}
 ).
@@ -43,12 +44,13 @@
 		getGitSh/0,
 		gitShSet/0,
 		setKeyValue/3,
-		getValueForKey/1
+		getValueForKey/1,
+		getWorkDir/0
    ]).
 
-start(_Config) ->
+start(Config) ->
 	error_logger:info_report("stateserver start called"),
-	gen_server:start_link({local,?MODULE}, ?MODULE, [], []).
+	gen_server:start_link({local,?MODULE}, ?MODULE, Config, []).
 
 
 setAccessKey(AccessKey)          -> gen_server:call(?MODULE, {setaccesskey, AccessKey}).
@@ -67,12 +69,17 @@ gitShSet()                    -> gen_server:call(?MODULE,  gitshset).
 setKeyValue(AccessKey, Key, Value) -> gen_server:call(?MODULE, {setkeyvalue, {AccessKey, Key, Value}}).
 getValueForKey(Key)                -> gen_server:call(?MODULE, {getvalueforkey, Key}).
 
+getWorkDir() -> gen_server:call(?MODULE,  getworkdir).
+
 
 %% gen_server callbacks
 
-init([]) ->
+init(Config) ->
 	error_logger:info_report("stateserver init called"),
-	{ok, #state{keyValueStore = dict:new()}}.
+    {ok, WorkDir} = get_option(work_dir, Config),
+	filelib:ensure_dir(WorkDir),
+	State = #state{keyValueStore = dict:new(), workDir = WorkDir},
+	{ok, State}.
 
 
 
@@ -200,6 +207,15 @@ handle_call({getvalueforkey, Key}, _From, Context) ->
 	end,
     {reply, Response, Context};
 
+handle_call(getworkdir, _From, Context) ->
+    Response = case Context#state.workDir of
+        undefined ->
+            not_found;
+        WorkDir ->
+        	WorkDir
+    end,
+    {reply, Response, Context};
+
 
 handle_call(stop, _From, State) ->
     {stop, normal, stopped, State};
@@ -218,6 +234,12 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 
 
 %% Utils
+
+get_option(Option, Options) ->
+    case lists:keytake(Option, 1, Options) of
+       false -> {ok, foo};
+       {value, {Option, Value}, _NewOptions} -> {ok, Value}
+    end.
 
 accessKeyOk(Context, OtherAccessKey) ->
 	case Context#state.accessKey of

@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_base_update_resource).
+-module(cloudrover_base_sh_resource).
 -export([init/1, allowed_methods/2, content_types_provided/2, forbidden/2, to_json/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
@@ -35,9 +35,20 @@ forbidden(ReqData, Context) ->
 
 to_json(ReqData, Context) ->
 %%	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
-	{ok, VsnString} = cloudrover_utils:sh("ls", [{cd, cloudrover_utils:get_cwd()}, {use_stdout, false}]),
-	Value = string:strip(VsnString, right, $\n),
-	{mochijson:encode({struct, [{"Output", Value}]}), ReqData, Context}.
+	case mochijson:decode(wrq:req_body(ReqData)) of
+		{struct, JSONData} ->
+			case cloudrover_base_utils:getValueFromJSON("sh", JSONData) of
+				{ok, ScriptName} ->
+%%					NewContext = dict:append("shScript", Value, Context),
+					{ok, VsnString} = cloudrover_utils:sh(ScriptName, [{cd, cloudrover_utils:get_cwd()}, {use_stdout, false}]),
+					Value = string:strip(VsnString, right, $\n),
+					{mochijson:encode({struct, [{"Output", Value}]}), ReqData, Context};
+				not_found ->
+					{"{}", ReqData, Context}
+			end;
+		_Otherwise ->
+	    	{"{}", ReqData, Context}
+	end.
 
 
 %% Utils

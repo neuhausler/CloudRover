@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 %%
-%%    Some of the functions are adapted from rebar_utils
+%%    Some of the functions are adapted from rebar/rebar_utils
 %%    https://github.com/basho/rebar/blob/master/src/rebar_utils.erl
 
 -module(cloudrover_utils).

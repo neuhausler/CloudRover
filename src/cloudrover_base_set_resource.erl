@@ -18,8 +18,6 @@
 
 -include_lib("webmachine/include/webmachine.hrl").
 
--define(GIT_CMD   , "git").
--define(SCRIPT_CMD, "script").
 -define(DICT_CMD  , "dict").
 
 init([]) ->
@@ -39,8 +37,6 @@ forbidden(ReqData, Context) ->
 from_json(ReqData, Context) ->
 	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
 	Domain = case wrq:path_tokens(ReqData) of
-		[?GIT_CMD] -> {git};
-		[?SCRIPT_CMD, ScriptName] -> {script, ScriptName};
 		[?DICT_CMD, Key] -> {dict, Key};
 		_Other -> notFound
 	end,

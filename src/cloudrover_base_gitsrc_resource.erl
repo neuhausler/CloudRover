@@ -36,7 +36,7 @@ from_json(ReqData, Context) ->
 	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
 	case mochijson:decode(wrq:req_body(ReqData)) of
 		{struct, JSONData} ->
-			case getValueFromJSON("gitsrc", JSONData) of
+			case cloudrover_base_utils:getValueFromJSON("gitsrc", JSONData) of
 				{ok, Value} ->
 					cloudrover_controller:setGitSrc(AccessKey, Value),
 					{true, ReqData, Context};
@@ -50,8 +50,3 @@ from_json(ReqData, Context) ->
 
 %% Utils
 
-getValueFromJSON(Key, JSONData) ->
-    case lists:keytake(Key, 1, JSONData) of
-       false -> not_found;
-       {value, {Key, Value}, _JSONData} -> {ok, Value}
-    end.
