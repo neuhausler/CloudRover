@@ -19,9 +19,10 @@
 -record(state,
 	{
 		accessKey = undefined,
+		rsaKey    = undefined,
+		workDir   = undefined,
 		gitSrc    = undefined,
 		gitSh     = undefined,
-		workDir   = undefined,
 		keyValueStore
 	}
 ).
@@ -37,6 +38,7 @@
 		getAccessKey/0,
 		accessKeySet/0,
 		correctAccessKey/1,
+		setRSAKey/2,
 		setGitSrc/2,
 		getGitSrc/0,
 		gitSrcSet/0,
@@ -57,6 +59,8 @@ setAccessKey(AccessKey)          -> gen_server:call(?MODULE, {setaccesskey, Acce
 getAccessKey()                   -> gen_server:call(?MODULE,  getaccesskey).
 accessKeySet()                   -> gen_server:call(?MODULE,  accesskeyset).
 correctAccessKey(OtherAccessKey) -> gen_server:call(?MODULE, {correctaccesskey, OtherAccessKey}).
+
+setRSAKey(AccessKey, RSAKey) -> gen_server:call(?MODULE, {setrsakey, {AccessKey, RSAKey}}).
 
 setGitSrc(AccessKey, GitSrcUrl) -> gen_server:call(?MODULE, {setgitsrc, {AccessKey, GitSrcUrl}}).
 getGitSrc()                     -> gen_server:call(?MODULE,  getgitsrc).
@@ -112,6 +116,32 @@ handle_call(accesskeyset, _From, Context) ->
 handle_call({correctaccesskey, OtherAccessKey}, _From, Context) ->
     Response = accessKeyOk(Context, OtherAccessKey),
     {reply, Response, Context};
+
+
+
+handle_call({setrsakey, {AccessKey, RSAKey}}, _From, Context) ->
+	error_logger:info_report("stateserver setrsakey called"),
+	Response = case accessKeyOk(Context, AccessKey) of
+		false ->
+			NewContext = Context,
+			accesskey_problem;
+		true ->
+		    case Context#state.rsaKey of
+		        undefined ->
+    				case file:write_file(Context#state.workDir ++ "key.rsa", RSAKey) of
+	        			ok ->
+		            		NewContext = Context#state{rsaKey = "key.rsa"},
+	            			ok;
+	        			Err ->
+							NewContext = Context,
+	            			{error, Err}
+    				end;    
+		        _OtherWise ->
+					NewContext = Context,
+		    		{error, already_set}
+			end
+    end,
+    {reply, Response, NewContext};
 
 
 

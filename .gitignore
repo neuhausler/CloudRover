@@ -1,6 +1,7 @@
 ebin/
 priv/log/
 deps/
+var/
 
 
 .DS_Store
@@ -9,4 +10,3 @@ deps/
 
 .settings/org.erlide.core.prefs
 
-var/cloudrover.pid
