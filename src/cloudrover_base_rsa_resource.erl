@@ -31,7 +31,9 @@ forbidden(ReqData, Context) ->
 
 process_post(ReqData, Context) ->
 	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
-    RSAKey = wrq:req_body(ReqData),
+    ContentType = wrq:get_req_header("content-type", ReqData),
+    Boundary = string:substr(ContentType, string:str(ContentType, "boundary=") + length("boundary=")),
+    [{_, _, RSAKey}] = webmachine_multipart:get_all_parts(wrq:req_body(ReqData), Boundary),
     case cloudrover_controller:setRSAKey(AccessKey, RSAKey) of
         ok ->
             {true, ReqData, Context};
