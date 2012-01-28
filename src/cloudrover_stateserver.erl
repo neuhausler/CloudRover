@@ -47,7 +47,8 @@
 		gitShSet/0,
 		setKeyValue/3,
 		getValueForKey/1,
-		getWorkDir/0
+		getWorkDir/0,
+		runScript/2
    ]).
 
 start(Config) ->
@@ -74,6 +75,8 @@ setKeyValue(AccessKey, Key, Value) -> gen_server:call(?MODULE, {setkeyvalue, {Ac
 getValueForKey(Key)                -> gen_server:call(?MODULE, {getvalueforkey, Key}).
 
 getWorkDir() -> gen_server:call(?MODULE,  getworkdir).
+
+runScript(AccessKey, ScriptName) -> gen_server:call(?MODULE, {runscript, {AccessKey, ScriptName}}).
 
 
 %% gen_server callbacks
@@ -245,6 +248,20 @@ handle_call(getworkdir, _From, Context) ->
         	WorkDir
     end,
     {reply, Response, Context};
+
+
+handle_call({runscript, {AccessKey, _ScriptName}}, _From, Context) ->
+	Response = case accessKeyOk(Context, AccessKey) of
+		false ->
+			accesskey_problem;
+		true ->
+			{ok, VsnString} = cloudrover_utils:sh("ssh -T -I cloudrover_config_rsa github.com", [{cd, Context#state.workDir}, {use_stdout, false}]),
+%%			{ok, VsnString} = cloudrover_utils:sh("git clone " ++ Context#state.gitSh, [{cd, Context#state.workDir}, {use_stdout, false}]),
+			Value = string:strip(VsnString, right, $\n),
+			Value
+    end,
+    {reply, Response, Context};
+
 
 
 handle_call(stop, _From, State) ->

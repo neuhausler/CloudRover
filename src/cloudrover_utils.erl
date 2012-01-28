@@ -45,7 +45,7 @@ sh(Command0, Options0) ->
     DefaultOptions = [use_stdout, abort_on_error],
     Options = [expand_sh_flag(V) || V <- proplists:compact(Options0 ++ DefaultOptions)],
 
-    ErrorHandler = proplists:get_value(error_handler, Options),
+%%    ErrorHandler = proplists:get_value(error_handler, Options),
     OutputHandler = proplists:get_value(output_handler, Options),
 
     PortSettings = proplists:get_all_values(port_settings, Options) ++ [exit_status, {line, 16384}, use_stdio, stderr_to_stdout, hide],
@@ -55,7 +55,8 @@ sh(Command0, Options0) ->
         {ok, _Output} = Ok ->
             Ok;
         {error, {_Rc, _Output}=Err} ->
-            ErrorHandler(Command0, Err)
+			notOk
+%%            ErrorHandler(Command0, Err)
     end.
 
 

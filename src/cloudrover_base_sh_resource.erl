@@ -34,14 +34,12 @@ forbidden(ReqData, Context) ->
 	cloudrover_base_utils:forbidden(ReqData, Context).
 
 to_json(ReqData, Context) ->
-%%	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
+	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
 	case mochijson:decode(wrq:req_body(ReqData)) of
 		{struct, JSONData} ->
 			case cloudrover_base_utils:getValueFromJSON("sh", JSONData) of
 				{ok, ScriptName} ->
-%%					NewContext = dict:append("shScript", Value, Context),
-					{ok, VsnString} = cloudrover_utils:sh(ScriptName, [{cd, cloudrover_utils:get_cwd()}, {use_stdout, false}]),
-					Value = string:strip(VsnString, right, $\n),
+					Value = cloudrover_controller:runScript(AccessKey, ScriptName),
 					{mochijson:encode({struct, [{"Output", Value}]}), ReqData, Context};
 				not_found ->
 					{"{}", ReqData, Context}
