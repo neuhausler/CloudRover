@@ -20,7 +20,8 @@
 -export(
    	[
 	 	get_cwd/0,
-		sh/2
+		sh/2,
+		os_cmd/1
 	]).
 
 %%
@@ -30,6 +31,9 @@
 get_cwd() ->
     {ok, Dir} = file:get_cwd(),
     Dir.
+
+os_cmd(Command) ->
+	os:cmd(Command).
 
 %%
 %% Options = [Option] -- defaults to [use_stdout, abort_on_error]

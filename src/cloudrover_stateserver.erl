@@ -288,22 +288,25 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 %%
 
 updateGitShRepository(Context) ->
-	case execCommand("ssh -T -I key.rsa " ++ Context#state.gitSSH, Context#state.workDir) of
-		error ->
+	cloudrover_utils:os_cmd("cd " ++ Context#state.workDir ++ ";ssh -T -I key.rsa " ++ Context#state.gitSSH ++ "git clone " ++ Context#state.gitSh),
+	ok.
+
+%%	case execCommand("ssh -T -I key.rsa " ++ Context#state.gitSSH, Context#state.workDir) of
+%%		error ->
 			%% we expect an error .. previous command only used for setting host
-			case execCommand("git clone " ++ Context#state.gitSh, Context#state.workDir) of
-				error ->
-					error;
-				interesting ->
-					error;
-				_Ok ->
-					ok
-			end;
-		interesting ->
-			error;
-		Otherwise ->
-			Otherwise
-	end.
+%%			case execCommand("git clone " ++ Context#state.gitSh, Context#state.workDir) of
+%%		error ->
+%%					error;
+%%				interesting ->
+%%					error;
+%%				_Ok ->
+%%					ok
+%%			end;
+%%		interesting ->
+%%			error;
+%%		Otherwise ->
+%%			Otherwise
+%%	end.
 
 execCommand(Command, Dir) ->
 	Result = cloudrover_utils:sh(Command, [{cd, Dir}, {use_stdout, false}]),
