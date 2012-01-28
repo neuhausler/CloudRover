@@ -23,6 +23,7 @@
 		workDir   = undefined,
 		gitSrc    = undefined,
 		gitSh     = undefined,
+		gitSSH    = undefined,
 		keyValueStore
 	}
 ).
@@ -85,7 +86,8 @@ init(Config) ->
 	error_logger:info_report("stateserver init called"),
     {ok, WorkDir} = get_option(work_dir, Config),
 	filelib:ensure_dir(WorkDir),
-	State = #state{keyValueStore = dict:new(), workDir = WorkDir},
+    {ok, GitSSH} = get_option(git_ssh, Config),
+	State = #state{keyValueStore = dict:new(), workDir = WorkDir, gitSSH = GitSSH},
 	{ok, State}.
 
 
@@ -255,10 +257,12 @@ handle_call({runscript, {AccessKey, _ScriptName}}, _From, Context) ->
 		false ->
 			accesskey_problem;
 		true ->
-			{ok, VsnString} = cloudrover_utils:sh("ssh -T -I cloudrover_config_rsa github.com", [{cd, Context#state.workDir}, {use_stdout, false}]),
-%%			{ok, VsnString} = cloudrover_utils:sh("git clone " ++ Context#state.gitSh, [{cd, Context#state.workDir}, {use_stdout, false}]),
-			Value = string:strip(VsnString, right, $\n),
-			Value
+			case updateGitShRepository(Context) of
+				ok ->
+					ok;
+				error ->
+					gitError
+			end
     end,
     {reply, Response, Context};
 
@@ -281,7 +285,39 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 
 
 %% Utils
+%%
 
+updateGitShRepository(Context) ->
+	case execCommand("ssh -T -I key.rsa " ++ Context#state.gitSSH, Context#state.workDir) of
+		error ->
+			%% we expect an error .. previous command only used for setting host
+			case execCommand("git clone " ++ Context#state.gitSh, Context#state.workDir) of
+				error ->
+					error;
+				interesting ->
+					error;
+				_Ok ->
+					ok
+			end;
+		interesting ->
+			error;
+		Otherwise ->
+			Otherwise
+	end.
+
+execCommand(Command, Dir) ->
+	Result = cloudrover_utils:sh(Command, [{cd, Dir}, {use_stdout, false}]),
+	case Result of
+		{ok, VsnString} ->
+			error_logger:info_report(VsnString),
+			Value = string:strip(VsnString, right, $\n),
+			Value;
+		notOk ->
+			error;
+		_Otherwise ->
+			interesting
+	end.
+ 
 get_option(Option, Options) ->
     case lists:keytake(Option, 1, Options) of
        false -> {ok, foo};

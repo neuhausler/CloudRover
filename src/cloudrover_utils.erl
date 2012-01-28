@@ -55,6 +55,7 @@ sh(Command0, Options0) ->
         {ok, _Output} = Ok ->
             Ok;
         {error, {_Rc, _Output}=Err} ->
+    		io:format("Error: ~p\n", [Err]),
 			notOk
 %%            ErrorHandler(Command0, Err)
     end.
