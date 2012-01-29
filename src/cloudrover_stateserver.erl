@@ -22,6 +22,7 @@
 		workDir   = undefined,
 		gitSrc    = undefined,
 		gitSh     = undefined,
+		gitShDir  = undefined,
 		keyValueStore
 	}
 ).
@@ -147,7 +148,8 @@ handle_call({setgitsh, {AccessKey, GitShUrl}}, _From, Context) ->
 		true ->
 		    case Context#state.gitSh of
 		        undefined ->
-		            NewContext = Context#state{gitSh= GitShUrl},
+					GitShDir = resolveGitDirFromURL(GitShUrl),
+		            NewContext = Context#state{gitSh= GitShUrl, gitShDir= GitShDir},
 		            ok;
 		        _OtherWise ->
 					NewContext = Context,
@@ -231,7 +233,12 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 %%
 
 updateGitShRepository(Context) ->
-	case execCommand("git clone " ++ Context#state.gitSh, Context#state.workDir) of
+	error_logger:info_report(Context#state.workDir ++ Context#state.gitShDir),
+	{Command, Dir} = case filelib:is_dir(Context#state.workDir ++ Context#state.gitShDir) of
+		false -> {"git clone " ++ Context#state.gitSh, Context#state.workDir};
+		true  -> {"git pull", Context#state.workDir ++ Context#state.gitShDir}
+	end,
+	case execCommand(Command, Dir) of
 		error -> error;
 		unexpected -> error;
 		_Otherwise -> ok
@@ -261,4 +268,7 @@ accessKeyOk(Context, OtherAccessKey) ->
         undefined -> false;
         AccessKey -> AccessKey == OtherAccessKey
     end.
-	
+
+resolveGitDirFromURL(URL) ->
+	DirPart = string:substr(URL, string:rstr(URL, "/")+1),
+	string:substr(DirPart, 1, string:len(DirPart)-4).
