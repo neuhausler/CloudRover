@@ -37,12 +37,12 @@ to_json(ReqData, Context) ->
 	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
 	case mochijson:decode(wrq:req_body(ReqData)) of
 		{struct, JSONData} ->
-			case cloudrover_base_utils:getValueFromJSON("sh", JSONData) of
-				{ok, ScriptName} ->
-					Value = cloudrover_controller:runScript(AccessKey, ScriptName),
-					{mochijson:encode({struct, [{"Output", Value}]}), ReqData, Context};
+			case resolveScriptAndGroup(JSONData) of
 				not_found ->
-					{"{}", ReqData, Context}
+					{"{}", ReqData, Context};
+				{GroupName, ScriptName} ->
+					Value = cloudrover_controller:runScript(AccessKey, GroupName, ScriptName),
+					{mochijson:encode({struct, [{"Output", Value}]}), ReqData, Context}
 			end;
 		_Otherwise ->
 	    	{"{}", ReqData, Context}
@@ -50,4 +50,20 @@ to_json(ReqData, Context) ->
 
 
 %% Utils
+%%
 
+resolveScriptAndGroup(JSONData) -> 
+	GroupName = case cloudrover_base_utils:getValueFromJSON("group",  JSONData) of
+		not_found -> not_found;
+		{ok, Group} -> Group
+	end,
+	ScriptName = case cloudrover_base_utils:getValueFromJSON("script", JSONData) of
+		not_found -> not_found;
+		{ok, Script} -> Script
+	end,
+	ScriptAndGroup = {GroupName, ScriptName},
+	case(ScriptAndGroup) of
+		{not_found, _} -> not_found;
+		{_, not_found} -> not_found;
+		{GroupName, ScriptName} -> {GroupName, ScriptName}
+	end.

@@ -44,7 +44,7 @@
 		setKeyValue/3,
 		getValueForKey/1,
 		getWorkDir/0,
-		runScript/2
+		runScript/3
    ]).
 
 start(Config) ->
@@ -59,9 +59,9 @@ correctAccessKey(OtherAccessKey) -> gen_server:call(?MODULE, {correctaccesskey, 
 setGitSrc(AccessKey, GitSrcUrl) -> gen_server:call(?MODULE, {setgitsrc, {AccessKey, GitSrcUrl}}).
 gitSrcSet()                     -> gen_server:call(?MODULE,  gitsrcset).
 
-setGitSh(AccessKey, GitShUrl)    -> gen_server:call(?MODULE, {setgitsh, {AccessKey, GitShUrl}}).
-gitShSet()                       -> gen_server:call(?MODULE,  gitshset).
-runScript(AccessKey, ScriptName) -> gen_server:call(?MODULE, {runscript, {AccessKey, ScriptName}}).
+setGitSh(AccessKey, GitShUrl)               -> gen_server:call(?MODULE, {setgitsh, {AccessKey, GitShUrl}}).
+gitShSet()                                  -> gen_server:call(?MODULE,  gitshset).
+runScript(AccessKey, GroupName, ScriptName) -> gen_server:call(?MODULE, {runscript, {AccessKey, GroupName, ScriptName}}).
 
 setKeyValue(AccessKey, Key, Value) -> gen_server:call(?MODULE, {setkeyvalue, {AccessKey, Key, Value}}).
 getValueForKey(Key)                -> gen_server:call(?MODULE, {getvalueforkey, Key}).
@@ -90,15 +90,6 @@ handle_call({setaccesskey, AccessKey}, _From, Context) ->
     		{reply, already_set, Context}
     end;
 
-handle_call(getaccesskey, _From, Context) ->
-    Response = case Context#state.accessKey of
-        undefined ->
-            not_found;
-        AccessKey ->
-        	AccessKey
-    end,
-    {reply, Response, Context};
-
 handle_call(accesskeyset, _From, Context) ->
 	Response = case Context#state.accessKey of
 		undefined  -> false;
@@ -109,6 +100,7 @@ handle_call(accesskeyset, _From, Context) ->
 handle_call({correctaccesskey, OtherAccessKey}, _From, Context) ->
     Response = accessKeyOk(Context, OtherAccessKey),
     {reply, Response, Context};
+
 
 
 
@@ -139,6 +131,7 @@ handle_call(gitsrcset, _From, Context) ->
 
 
 
+
 handle_call({setgitsh, {AccessKey, GitShUrl}}, _From, Context) ->
 	error_logger:info_report("stateserver setgitsh called"),
 	Response = case accessKeyOk(Context, AccessKey) of
@@ -164,6 +157,21 @@ handle_call(gitshset, _From, Context) ->
 		_OtherWise -> true
 	end,
     {reply, Response, Context};
+
+handle_call({runscript, {AccessKey, GroupName, ScriptName}}, _From, Context) ->
+	Response = case accessKeyOk(Context, AccessKey) of
+		false ->
+			accesskey_problem;
+		true ->
+			case updateGitShRepository(Context) of
+				ok ->
+					runScriptInGroup(Context, GroupName, ScriptName);
+				error ->
+					gitError
+			end
+    end,
+    {reply, Response, Context};
+
 
 
 
@@ -197,21 +205,6 @@ handle_call(getworkdir, _From, Context) ->
     {reply, Response, Context};
 
 
-handle_call({runscript, {AccessKey, _ScriptName}}, _From, Context) ->
-	Response = case accessKeyOk(Context, AccessKey) of
-		false ->
-			accesskey_problem;
-		true ->
-			case updateGitShRepository(Context) of
-				ok ->
-					ok;
-				error ->
-					gitError
-			end
-    end,
-    {reply, Response, Context};
-
-
 
 handle_call(stop, _From, State) ->
     {stop, normal, stopped, State};
@@ -233,7 +226,6 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 %%
 
 updateGitShRepository(Context) ->
-	error_logger:info_report(Context#state.workDir ++ Context#state.gitShDir),
 	{Command, Dir} = case filelib:is_dir(Context#state.workDir ++ Context#state.gitShDir) of
 		false -> {"git clone " ++ Context#state.gitSh, Context#state.workDir};
 		true  -> {"git pull", Context#state.workDir ++ Context#state.gitShDir}
@@ -243,6 +235,11 @@ updateGitShRepository(Context) ->
 		unexpected -> error;
 		_Otherwise -> ok
 	end.
+
+runScriptInGroup(Context, GroupName, ScriptName) ->
+	Dir = Context#state.workDir ++ Context#state.gitShDir ++ "/" ++ GroupName,
+	Command = "./" ++ ScriptName,
+	execCommand(Command, Dir).
 
 execCommand(Command, Dir) ->
 	Result = cloudrover_utils:sh(Command, [{cd, Dir}, {use_stdout, false}]),

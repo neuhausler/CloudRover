@@ -37,5 +37,5 @@ setKeyValue(AccessKey, Key, Value) ->
 getValueForKey(Key) ->
 	cloudrover_stateserver:getValueForKey(Key).
 
-runScript(AccessKey, ScriptName) ->
-	cloudrover_stateserver:runScript(AccessKey, ScriptName).
+runScript(AccessKey, GroupName, ScriptName) ->
+	cloudrover_stateserver:runScript(AccessKey, GroupName, ScriptName).
