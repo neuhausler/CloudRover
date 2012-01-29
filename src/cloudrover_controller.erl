@@ -25,9 +25,6 @@ setAccessKey(AccessKey) ->
 checkAccessKey(AccessKey) ->
 	cloudrover_stateserver:correctAccessKey(AccessKey).
 
-setRSAKey(AccessKey, RSAKey) ->
-	cloudrover_stateserver:setRSAKey(AccessKey, RSAKey).
-
 setGitSrc(AccessKey, GitSrcUrl) ->
 	cloudrover_stateserver:setGitSrc(AccessKey, GitSrcUrl).
 

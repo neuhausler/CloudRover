@@ -58,7 +58,9 @@ init([]) ->
     {ok, LogDir}   = get_option(log_dir, Config),
     {ok, WorkDir}  = get_option(work_dir, Config),
 	{ok, PidFile}  = get_option(pid_file, Config),
-	{ok, GitSSH}   = get_option(git_ssh, Config),
+
+	filelib:ensure_dir(LogDir),
+	filelib:ensure_dir(WorkDir),
 
     ok= file:write_file(PidFile, os:getpid()),
 
@@ -71,8 +73,7 @@ init([]) ->
 	],
 	
 	StateServerConfig = [
-		{work_dir, WorkDir},
-		{git_ssh,  GitSSH}
+		{work_dir, WorkDir}
 	], 
 
 	StateServer =
