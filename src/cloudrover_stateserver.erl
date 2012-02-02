@@ -61,7 +61,7 @@ gitSrcSet()                     -> gen_server:call(?MODULE,  gitsrcset).
 
 setGitSh(AccessKey, GitShUrl)               -> gen_server:call(?MODULE, {setgitsh, {AccessKey, GitShUrl}}).
 gitShSet()                                  -> gen_server:call(?MODULE,  gitshset).
-runScript(AccessKey, GroupName, ScriptName) -> gen_server:call(?MODULE, {runscript, {AccessKey, GroupName, ScriptName}}).
+runScript(AccessKey, GroupName, ScriptName) -> gen_server:call(?MODULE, {runscript, {AccessKey, GroupName, ScriptName}}, 20000).
 
 setKeyValue(AccessKey, Key, Value) -> gen_server:call(?MODULE, {setkeyvalue, {AccessKey, Key, Value}}).
 getValueForKey(Key)                -> gen_server:call(?MODULE, {getvalueforkey, Key}).

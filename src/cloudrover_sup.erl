@@ -29,42 +29,45 @@
 %% @spec start_link() -> ServerRet
 %% @doc API for starting the supervisor.
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %% @spec upgrade() -> ok
 %% @doc Add processes if necessary.
 upgrade() ->
-    {ok, {_, Specs}} = init([]),
+	{ok, {_, Specs}} = init([]),
 
-    Old = sets:from_list([Name || {Name, _, _, _} <- supervisor:which_children(?MODULE)]),
-    New = sets:from_list([Name || {Name, _, _, _, _, _} <- Specs]),
-    Kill = sets:subtract(Old, New),
+	Old = sets:from_list([Name || {Name, _, _, _} <- supervisor:which_children(?MODULE)]),
+	New = sets:from_list([Name || {Name, _, _, _, _, _} <- Specs]),
+	Kill = sets:subtract(Old, New),
 
-    sets:fold(fun (Id, ok) ->
-                      supervisor:terminate_child(?MODULE, Id),
-                      supervisor:delete_child(?MODULE, Id),
-                      ok
-              end, ok, Kill),
+	sets:fold(
+		fun (Id, ok) ->
+			supervisor:terminate_child(?MODULE, Id),
+			supervisor:delete_child(?MODULE, Id),
+			ok
+		end,
+		ok,
+		Kill),
 
-    [supervisor:start_child(?MODULE, Spec) || Spec <- Specs],
-    ok.
+	[supervisor:start_child(?MODULE, Spec) || Spec <- Specs],
+	ok.
 
 %% @spec init([]) -> SupervisorTree
 %% @doc supervisor callback.
 init([]) ->
-    {ok, Dispatch} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "dispatch.conf"])),
-    {ok, Config}   = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
-    {ok, Port}     = get_option(port, Config),
-    {ok, LogDir}   = get_option(log_dir, Config),
-    {ok, WorkDir}  = get_option(work_dir, Config),
+	{ok, Dispatch} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "dispatch.conf"])),
+	{ok, Config}   = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
+	{ok, Port}     = get_option(port, Config),
+	{ok, LogDir}   = get_option(log_dir, Config),
+	{ok, WorkDir}  = get_option(work_dir, Config),
 	{ok, PidFile}  = get_option(pid_file, Config),
 
 	filelib:ensure_dir(LogDir),
 	filelib:ensure_dir(WorkDir),
 
-    ok= file:write_file(PidFile, os:getpid()),
+	ok= file:write_file(PidFile, os:getpid()),
 
-    WebConfig = [
+	WebConfig = [
 		{ip, "0.0.0.0"},
 		{port, Port},
 		{log_dir, LogDir},
@@ -86,7 +89,7 @@ init([]) ->
 		[]
 	},
 	
-    WebServer =
+	WebServer =
 	{
 		webmachine_mochiweb,
 		{webmachine_mochiweb, start, [WebConfig]},
@@ -96,16 +99,16 @@ init([]) ->
 		[mochiweb_socket_server, cloudrover_stateserver]
 	},
 
-    Processes = [WebServer, StateServer],
-    {ok, { {one_for_all, 10, 10}, Processes} }.
+	Processes = [WebServer, StateServer],
+	{ok, { {one_for_all, 10, 10}, Processes} }.
 
 
 
 %% Utils
 
 get_option(Option, Options) ->
-    case lists:keytake(Option, 1, Options) of
-       false -> {ok, foo};
-       {value, {Option, Value}, _NewOptions} -> {ok, Value}
-    end.
+	case lists:keytake(Option, 1, Options) of
+		false -> {ok, foo};
+		{value, {Option, Value}, _NewOptions} -> {ok, Value}
+	end.
 
