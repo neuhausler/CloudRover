@@ -37,14 +37,14 @@ setKeyValue(AccessKey, Key, Value) ->
 getValueForKey(Key) ->
 	cloudrover_stateserver:getValueForKey(Key).
 
-runScript(AccessKey, GroupName, ScriptName) ->
+runScript(AccessKey, GroupName, ScriptName, Env) ->
 	Response = case cloudrover_stateserver:correctAccessKey(AccessKey) of
 		false ->
 			accesskey_problem;
 		true ->
 			case updateGitShRepository(AccessKey) of
 				ok ->
-					runScriptInGroup(GroupName, ScriptName);
+					runScriptInGroup(GroupName, ScriptName, Env);
 				error ->
 					gitError
 			end
@@ -64,22 +64,22 @@ updateGitShRepository(AccessKey) ->
 		false -> {"git clone " ++ GitShURL, WorkDir};
 		true  -> {"git pull", WorkDir ++ ShDir}
 	end,
-	case execCommand(Command, Dir) of
+	case execCommand(Command, Dir, []) of
 		error -> error;
 		unexpected -> error;
 		_Otherwise -> ok
 	end.
 
-runScriptInGroup(GroupName, ScriptName) ->
+runScriptInGroup(GroupName, ScriptName, Env) ->
 	WorkDir = cloudrover_stateserver:getWorkDir(),
 	ShDir   = cloudrover_stateserver:getShDir(),
 
 	Dir = WorkDir ++ ShDir ++ "/" ++ GroupName,
 	Command = "./" ++ ScriptName,
-	execCommand(Command, Dir).
+	execCommand(Command, Dir, Env).
 
-execCommand(Command, Dir) ->
-	Result = cloudrover_utils:sh(Command, [{cd, Dir}, {use_stdout, false}]),
+execCommand(Command, Dir, Env) ->
+	Result = cloudrover_utils:sh(Command, [{cd, Dir}, {use_stdout, false}, {env, Env}]),
 	case Result of
 		{ok, VsnString} ->
 			error_logger:info_report(VsnString),

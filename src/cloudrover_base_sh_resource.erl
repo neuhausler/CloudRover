@@ -37,9 +37,14 @@ to_json(ReqData, Context) ->
 	{ok, AccessKey}  = dict:find(accesskey,  wrq:path_info(ReqData)),
 	{ok, GroupName}  = dict:find(groupname,  wrq:path_info(ReqData)),
 	{ok, ScriptName} = dict:find(scriptname, wrq:path_info(ReqData)),
-	Value = cloudrover_controller:runScript(AccessKey, GroupName, ScriptName),
+	Env = resolveQueryArguments(ReqData),
+	Value = cloudrover_controller:runScript(AccessKey, GroupName, ScriptName, Env),
 	{mochijson:encode({struct, [{"Output", Value}]}), ReqData, Context}.
 
 
 %% Utils
 %%
+
+resolveQueryArguments(ReqData) ->
+	wrq:req_qs(ReqData).
+
