@@ -24,10 +24,10 @@ init([]) ->
 
 
 allowed_methods(ReqData, Context) ->
-    {['PUT'], ReqData, Context}.
+	{['PUT'], ReqData, Context}.
 
 content_types_accepted(ReqData, Context) ->
-    {[{"application/json", from_json}], ReqData, Context}.
+	{[{"application/json", from_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
 	cloudrover_base_utils:forbidden(ReqData, Context).
@@ -44,7 +44,7 @@ from_json(ReqData, Context) ->
 					{false, ReqData, Context}
 			end;
 		_Otherwise ->
-    		{false, ReqData, Context}
+			{false, ReqData, Context}
 	end.
 
 

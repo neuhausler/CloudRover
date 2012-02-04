@@ -25,9 +25,8 @@
 %% @spec start(_Type, _StartArgs) -> ServerRet
 %% @doc application start callback for cloudrover.
 start(_Type, _StartArgs) ->
-    cloudrover_sup:start_link().
+	cloudrover_sup:start_link().
 
 %% @spec stop(_State) -> ServerRet
 %% @doc application stop callback for cloudrover.
-stop(_State) ->
-    ok.
+stop(_State) -> ok.

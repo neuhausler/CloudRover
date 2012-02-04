@@ -26,10 +26,10 @@ init([]) ->
 
 
 allowed_methods(ReqData, Context) ->
-    {['PUT'], ReqData, Context}.
+	{['PUT'], ReqData, Context}.
 
 content_types_accepted(ReqData, Context) ->
-    {[{"application/json", from_json}], ReqData, Context}.
+	{[{"application/json", from_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
 	cloudrover_base_utils:forbidden(ReqData, Context).
@@ -50,12 +50,12 @@ from_json(ReqData, Context) ->
 						{ok, Value} ->
 %%							error_logger:info_msg("Set Key: ~p Value: ~p~n", [KeyName, Value]),
 							cloudrover_controller:setKeyValue(AccessKey, KeyName, Value),
-	    					{true, ReqData, Context};
+							{true, ReqData, Context};
 						not_found ->
 							{false, ReqData, Context}
 					end;
 				_Otherwise ->
-	    			{false, ReqData, Context}
+					{false, ReqData, Context}
 			end
 	end.
 

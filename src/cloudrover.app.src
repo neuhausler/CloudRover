@@ -1,18 +1,18 @@
 %%-*- mode: erlang -*-
 {application, cloudrover,
- [
-  {description, "cloudrover"},
-  {vsn, "1"},
-  {modules, [cloudrover_sup, cloudrover_stateserver]},
-  {registered, [cloudrover_sup, cloudrover_stateserver]},
-  {applications, [
-                  kernel,
-                  stdlib,
-                  inets,
-                  crypto,
-                  mochiweb,
-                  webmachine
-                 ]},
-  {mod, { cloudrover_app, []}},
-  {env, []}
- ]}.
+	[
+		{description, "cloudrover"},
+		{vsn, "1"},
+		{modules, [cloudrover_sup, cloudrover_stateserver]},
+		{registered, [cloudrover_sup, cloudrover_stateserver]},
+		{applications, [
+			kernel,
+			stdlib,
+			inets,
+			crypto,
+			mochiweb,
+			webmachine
+		]},
+		{mod, { cloudrover_app, []}},
+		{env, []}
+	]}.

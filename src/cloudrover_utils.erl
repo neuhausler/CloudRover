@@ -18,8 +18,8 @@
 
 -module(cloudrover_utils).
 -export(
-   	[
-	 	get_cwd/0,
+	[
+		get_cwd/0,
 		sh/2,
 		os_cmd/1
 	]).
@@ -29,8 +29,8 @@
 %%
 
 get_cwd() ->
-    {ok, Dir} = file:get_cwd(),
-    Dir.
+	{ok, Dir} = file:get_cwd(),
+	Dir.
 
 os_cmd(Command) ->
 	os:cmd(Command).
@@ -44,25 +44,25 @@ os_cmd(Command) ->
 %% Val = string() | false
 %%
 sh(Command0, Options0) ->
-    io:format("sh info:\n\tcwd: ~p\n\tcmd: ~s\n\topts: ~p\n", [get_cwd(), Command0, Options0]),
+	io:format("sh info:\n\tcwd: ~p\n\tcmd: ~s\n\topts: ~p\n", [get_cwd(), Command0, Options0]),
 
-    DefaultOptions = [use_stdout, abort_on_error],
-    Options = [expand_sh_flag(V) || V <- proplists:compact(Options0 ++ DefaultOptions)],
+	DefaultOptions = [use_stdout, abort_on_error],
+	Options = [expand_sh_flag(V) || V <- proplists:compact(Options0 ++ DefaultOptions)],
 
 %%    ErrorHandler = proplists:get_value(error_handler, Options),
-    OutputHandler = proplists:get_value(output_handler, Options),
+	OutputHandler = proplists:get_value(output_handler, Options),
 
-    PortSettings = proplists:get_all_values(port_settings, Options) ++ [exit_status, {line, 16384}, use_stdio, stderr_to_stdout, hide],
-    Port = open_port({spawn, Command0}, PortSettings),
+	PortSettings = proplists:get_all_values(port_settings, Options) ++ [exit_status, {line, 16384}, use_stdio, stderr_to_stdout, hide],
+	Port = open_port({spawn, Command0}, PortSettings),
 
-    case sh_loop(Port, OutputHandler, []) of
-        {ok, _Output} = Ok ->
-            Ok;
-        {error, {_Rc, _Output}=Err} ->
-    		io:format("Error: ~p\n", [Err]),
+	case sh_loop(Port, OutputHandler, []) of
+		{ok, _Output} = Ok ->
+			Ok;
+		{error, {_Rc, _Output}=Err} ->
+			io:format("Error: ~p\n", [Err]),
 			notOk
 %%            ErrorHandler(Command0, Err)
-    end.
+	end.
 
 
 
@@ -71,52 +71,58 @@ sh(Command0, Options0) ->
 %%
 
 expand_sh_flag(return_on_error) ->
-    {error_handler,
-     fun(_Command, Err) ->
-             {error, Err}
-     end};
+	{error_handler,
+		fun(_Command, Err) ->
+		{error, Err}
+		end};
+
 expand_sh_flag({abort_on_error, Message}) ->
-    {error_handler,
-     log_msg_and_abort(Message)};
+	{error_handler,
+		log_msg_and_abort(Message)};
+
 expand_sh_flag(abort_on_error) ->
-    {error_handler,
-     fun log_and_abort/2};
+	{error_handler,
+		fun log_and_abort/2};
+
 expand_sh_flag(use_stdout) ->
-    {output_handler,
-     fun(Line, Acc) ->
-             io:format("~s", [Line]),
-             [Line | Acc]
-     end};
+	{output_handler,
+		fun(Line, Acc) ->
+			io:format("~s", [Line]),
+			[Line | Acc]
+		end};
+
 expand_sh_flag({use_stdout, false}) ->
-    {output_handler,
-     fun(Line, Acc) ->
-             [Line | Acc]
-     end};
+	{output_handler,
+		fun(Line, Acc) ->
+		[Line | Acc]
+		end};
+
 expand_sh_flag({cd, _CdArg} = Cd) ->
-    {port_settings, Cd};
+	{port_settings, Cd};
+
 expand_sh_flag({env, _EnvArg} = Env) ->
-    {port_settings, Env}.
+	{port_settings, Env}.
 
 log_msg_and_abort(Message) ->
-    fun(_Command, {_Rc, _Output}) ->
-            abort(Message, [])
-    end.
+	fun(_Command, {_Rc, _Output}) ->
+		abort(Message, [])
+	end.
 
 log_and_abort(Command, {Rc, Output}) ->
-    abort("~s failed with error: ~w and output:~n~s~n", [Command, Rc, Output]).
+	abort("~s failed with error: ~w and output:~n~s~n", [Command, Rc, Output]).
 
 abort(String, Args) ->
-    io:format(String, Args),
-    halt(1).
+	io:format(String, Args),
+	halt(1).
 
 sh_loop(Port, Fun, Acc) ->
-    receive
-        {Port, {data, {eol, Line}}} ->
-            sh_loop(Port, Fun, Fun(Line ++ "\n", Acc));
-        {Port, {data, {noeol, Line}}} ->
-            sh_loop(Port, Fun, Fun(Line, Acc));
-        {Port, {exit_status, 0}} ->
-            {ok, lists:flatten(lists:reverse(Acc))};
-        {Port, {exit_status, Rc}} ->
-            {error, {Rc, lists:flatten(lists:reverse(Acc))}}
-    end.
+	receive
+		{Port, {data, {eol, Line}}} ->
+			sh_loop(Port, Fun, Fun(Line ++ "\n", Acc));
+		{Port, {data, {noeol, Line}}} ->
+			sh_loop(Port, Fun, Fun(Line, Acc));
+		{Port, {exit_status, 0}} ->
+			{ok, lists:flatten(lists:reverse(Acc))};
+		{Port, {exit_status, Rc}} ->
+			{error, {Rc, lists:flatten(lists:reverse(Acc))}}
+	end.

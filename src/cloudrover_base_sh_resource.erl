@@ -25,10 +25,10 @@ init([]) ->
 
 
 allowed_methods(ReqData, Context) ->
-    {['GET'], ReqData, Context}.
+	{['GET'], ReqData, Context}.
 
 content_types_provided(ReqData, Context) ->
-    {[{"application/json", to_json}], ReqData, Context}.
+	{[{"application/json", to_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
 	cloudrover_base_utils:forbidden(ReqData, Context).

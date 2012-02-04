@@ -15,8 +15,8 @@
 
 -module(cloudrover_base_utils).
 -export(
-   	[
-	 	forbidden/2,
+	[
+		forbidden/2,
 		getValueFromJSON/2
 	]).
 
@@ -26,22 +26,22 @@ forbidden(ReqData, Context) ->
 		error ->
 			{true, ReqData, Context};
 		{ok, AccessKey} ->
-    		case cloudrover_controller:accessKeySet() of
-        		false ->
+			case cloudrover_controller:accessKeySet() of
+				false ->
 					{true, ReqData, Context};
-        		true ->
+				true ->
 					case cloudrover_controller:checkAccessKey(AccessKey) of
 						true ->
-    						{false, ReqData, Context};
+							{false, ReqData, Context};
 						false ->
 							{true, ReqData, Context}
 					end
 			end
-    end.
+	end.
 
 
 getValueFromJSON(Key, JSONData) ->
-    case lists:keytake(Key, 1, JSONData) of
-       false -> not_found;
-       {value, {Key, Value}, _JSONData} -> {ok, Value}
-    end.
+	case lists:keytake(Key, 1, JSONData) of
+		false -> not_found;
+		{value, {Key, Value}, _JSONData} -> {ok, Value}
+	end.

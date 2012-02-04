@@ -48,8 +48,8 @@ runScript(AccessKey, GroupName, ScriptName, Env) ->
 				error ->
 					gitError
 			end
-    end,
-    Response.
+	end,
+	Response.
 
 
 %% Utils

@@ -24,18 +24,18 @@ init([]) ->
 
 
 allowed_methods(ReqData, Context) ->
-    {['PUT'], ReqData, Context}.
+	{['PUT'], ReqData, Context}.
 
 content_types_accepted(ReqData, Context) ->
-    {[{"application/json", from_json}], ReqData, Context}.
+	{[{"application/json", from_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
 	case cloudrover_controller:accessKeySet() of
-        true ->
+		true ->
 			{true, ReqData, Context};
 		false ->
 			{false, ReqData, Context}
-    end.
+	end.
 
 from_json(ReqData, Context) ->
 	case mochijson:decode(wrq:req_body(ReqData)) of
@@ -48,7 +48,7 @@ from_json(ReqData, Context) ->
 					{false, ReqData, Context}
 			end;
 		_Otherwise ->
-    		{false, ReqData, Context}
+			{false, ReqData, Context}
 	end.
 
 %% Utils

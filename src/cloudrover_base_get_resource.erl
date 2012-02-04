@@ -21,14 +21,14 @@
 -define(DICT_CMD, "dict").
 
 init([]) ->
-	{{trace, "/tmp"}, dict:new()}.
-%%	{ok, dict:new()}.
+%%	{{trace, "/tmp"}, dict:new()}.
+	{ok, dict:new()}.
 
 allowed_methods(ReqData, Context) ->
-    {['GET'], ReqData, Context}.
+	{['GET'], ReqData, Context}.
 
 content_types_provided(ReqData, Context) ->
-    {[{"application/json", to_json}], ReqData, Context}.
+	{[{"application/json", to_json}], ReqData, Context}.
 
 to_json(ReqData, Context) ->
 	Domain = case wrq:path_tokens(ReqData) of

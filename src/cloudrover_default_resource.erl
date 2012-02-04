@@ -18,7 +18,8 @@
 
 -include_lib("webmachine/include/webmachine.hrl").
 
-init([]) -> {ok, nostate}.
+init([]) ->
+	{ok, nostate}.
 
 to_html(ReqData, Context) ->
-    {"<html><head><title>CloudRover</title></head><body>Hello, Earth!</body></html>", ReqData, Context}.
+	{"<html><head><title>CloudRover</title></head><body>Hello, Earth!</body></html>", ReqData, Context}.
