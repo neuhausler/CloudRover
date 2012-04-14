@@ -46,7 +46,7 @@ Run in Erlang console mode
 
 A CloudRover ID has to be set first via a PUT request. That ID will be used later as part of the URL. That ID can only be set once.
 
-Example: Set ID of local CloudRover to "A123B345":
+Example: Set ID of local CloudRover to `A123B345`:
 
 ```
 curl -X PUT http://localhost:8000/base/key \
@@ -121,6 +121,7 @@ The value gets returned as a JSON object: `{"mq_hostname":"mq.test.com"}` and `{
 **CloudRover Configuration**
 
 The configuration for the CloudRover itself is stored in `./priv/cloudrover.conf` and can be adjusted as needed.
+
 ```
 {port,     8000}.
 
