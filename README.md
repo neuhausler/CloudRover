@@ -92,7 +92,7 @@ curl http://localhost:8000/base/A123B345/sh/playground/ls.sh?cdpath=%2F
 
 **Set a configuration parameter**
 
-CloudRover serves as a generic Key/Value store. This can be used to store/exchange configuration information. The CloudRover ID defined a startup (`A123B345`) has to be used to set a value.
+CloudRover serves as a generic Key/Value store. This can be used to store/exchange configuration information. The CloudRover ID defined at startup (`A123B345`) has to be used to set a value.
 
 Example: Set the host for the message queue `mq_hostname` to `mq.test.com` and the port `mq_portnumber` of the queue to `5672`
 
