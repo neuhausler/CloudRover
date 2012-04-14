@@ -26,7 +26,7 @@ CloudRover is written in Erlang based on [webmachine] (https://github.com/basho/
 
 CloudRover was developed and tested using Erlang R14B03.
 
-**Build:**
+**Build**
 
 ```
 git clone git://github.com/neuhausler/CloudRover.git
@@ -34,7 +34,7 @@ cd CloudRover
 make
 ```
 
-**Run:**
+**Run**
 
 Run in Erlang console mode
 
