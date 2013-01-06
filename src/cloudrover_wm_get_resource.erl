@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_base_get_resource).
+-module(cloudrover_wm_get_resource).
 -export([init/1, allowed_methods/2, content_types_provided/2, to_json/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").

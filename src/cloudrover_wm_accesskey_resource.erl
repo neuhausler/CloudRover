@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_base_accesskey_resource).
+-module(cloudrover_wm_accesskey_resource).
 -export([init/1, allowed_methods/2, content_types_accepted/2, forbidden/2, from_json/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
@@ -40,7 +40,7 @@ forbidden(ReqData, Context) ->
 from_json(ReqData, Context) ->
 	case mochijson:decode(wrq:req_body(ReqData)) of
 		{struct, JSONData} ->
-			case cloudrover_base_utils:getValueFromJSON("accesskey", JSONData) of
+			case cloudrover_wm_utils:getValueFromJSON("accesskey", JSONData) of
 				{ok, Value} ->
 					cloudrover_controller:setAccessKey(Value),
 					{true, ReqData, Context};

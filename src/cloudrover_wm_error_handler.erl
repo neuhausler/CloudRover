@@ -15,7 +15,7 @@
 
 %% @doc Based on original error_handler from Webmachine.
 
--module(cloudrover_error_handler).
+-module(cloudrover_wm_error_handler).
 
 -export([render_error/3]).
 

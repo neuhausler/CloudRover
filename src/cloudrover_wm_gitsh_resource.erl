@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_base_gitsh_resource).
+-module(cloudrover_wm_gitsh_resource).
 -export([init/1, allowed_methods/2, content_types_accepted/2, forbidden/2, from_json/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
@@ -30,13 +30,13 @@ content_types_accepted(ReqData, Context) ->
 	{[{"application/json", from_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
-	cloudrover_base_utils:forbidden(ReqData, Context).
+	cloudrover_wm_utils:forbidden(ReqData, Context).
 
 from_json(ReqData, Context) ->
 	{ok, AccessKey} = dict:find(accesskey, wrq:path_info(ReqData)),
 	case mochijson:decode(wrq:req_body(ReqData)) of
 		{struct, JSONData} ->
-			case cloudrover_base_utils:getValueFromJSON("gitsh", JSONData) of
+			case cloudrover_wm_utils:getValueFromJSON("gitsh", JSONData) of
 				{ok, Value} ->
 					cloudrover_controller:setGitSh(AccessKey, Value),
 					{true, ReqData, Context};

@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_base_utils).
+-module(cloudrover_wm_utils).
 -export(
 	[
 		forbidden/2,

@@ -3,10 +3,7 @@ priv/log/
 deps/
 var/
 
-
 .DS_Store
-
 .project
-
 .settings/org.erlide.core.prefs
-
+.idea/

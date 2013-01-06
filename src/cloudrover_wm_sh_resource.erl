@@ -13,7 +13,7 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
--module(cloudrover_base_sh_resource).
+-module(cloudrover_wm_sh_resource).
 -export([init/1, allowed_methods/2, content_types_provided/2, forbidden/2, to_json/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
@@ -31,7 +31,7 @@ content_types_provided(ReqData, Context) ->
 	{[{"application/json", to_json}], ReqData, Context}.
 
 forbidden(ReqData, Context) ->
-	cloudrover_base_utils:forbidden(ReqData, Context).
+	cloudrover_wm_utils:forbidden(ReqData, Context).
 
 to_json(ReqData, Context) ->
 	{ok, AccessKey}  = dict:find(accesskey,  wrq:path_info(ReqData)),

@@ -72,7 +72,7 @@ init([]) ->
 		{port, Port},
 		{log_dir, LogDir},
 		{dispatch, Dispatch},
-		{error_handler, cloudrover_error_handler}
+		{error_handler, cloudrover_wm_error_handler}
 	],
 	
 	StateServerConfig = [
