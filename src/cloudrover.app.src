@@ -3,8 +3,8 @@
 	[
 		{description, "cloudrover"},
 		{vsn, "1"},
-		{modules, [cloudrover_sup, cloudrover_stateserver]},
-		{registered, [cloudrover_sup, cloudrover_stateserver]},
+		{modules, [cloudrover_sup, cloudrover_stateserver, cloudrover_shutdown_manager]},
+		{registered, [cloudrover_sup, cloudrover_stateserver, cloudrover_shutdown_manager]},
 		{applications, [
 			kernel,
 			stdlib,

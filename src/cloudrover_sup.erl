@@ -77,9 +77,13 @@ init([]) ->
 	
 	StateServerConfig = [
 		{work_dir, WorkDir}
-	], 
+	],
 
-	StateServer =
+    ShutdownManagerConfig = [
+        {work_dir, WorkDir}
+    ],
+
+    StateServer =
 	{
 		cloudrover_stateserver,
 		{cloudrover_stateserver, start, [StateServerConfig]},
@@ -88,8 +92,18 @@ init([]) ->
 		worker,
 		[]
 	},
-	
-	WebServer =
+
+    ShutdownManager =
+    {
+        cloudrover_shutdown_manager,
+        {cloudrover_shutdown_manager, start, [ShutdownManagerConfig]},
+        permanent,
+        5000,
+        worker,
+        []
+    },
+
+    WebServer =
 	{
 		webmachine_mochiweb,
 		{webmachine_mochiweb, start, [WebConfig]},
@@ -99,7 +113,7 @@ init([]) ->
 		[mochiweb_socket_server, cloudrover_stateserver]
 	},
 
-	Processes = [WebServer, StateServer],
+	Processes = [WebServer, StateServer, ShutdownManager],
 	{ok, { {one_for_all, 10, 10}, Processes} }.
 
 

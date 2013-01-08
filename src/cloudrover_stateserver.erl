@@ -32,21 +32,21 @@
 
 %% public APIs
 -export(
-	[
-		start/1,
-		setAccessKey/1,
-		accessKeySet/0,
-		correctAccessKey/1,
-		setGitSrc/2,
-		gitSrcSet/0,
-		setGitSh/2,
-		getGitSh/1,
-		gitShSet/0,
-		setKeyValue/3,
-		getValueForKey/1,
-		getWorkDir/0,
-		getShDir/0
-	]).
+[
+    start/1,
+    setAccessKey/1,
+    accessKeySet/0,
+    correctAccessKey/1,
+    setGitSrc/2,
+    gitSrcSet/0,
+    setGitSh/2,
+    getGitSh/1,
+    gitShSet/0,
+    setKeyValue/3,
+    getValueForKey/1,
+    getWorkDir/0,
+    getShDir/0
+]).
 
 start(Config) ->
 	error_logger:info_report("stateserver start called"),
