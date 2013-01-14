@@ -87,6 +87,7 @@ handle_call({setaccesskey, AccessKey}, _From, Context) ->
 	case Context#state.accessKey of
 		undefined ->
 			NewContext = Context#state{accessKey= AccessKey},
+            cloudrover_shutdown_manager:bootstrap_accesskey_is_set(),
 			{reply, ok, NewContext};
 		_OtherWise ->
 			{reply, already_set, Context}
@@ -145,6 +146,7 @@ handle_call({setgitsh, {AccessKey, GitShUrl}}, _From, Context) ->
 				undefined ->
 					GitShDir = resolveGitDirFromURL(GitShUrl),
 					NewContext = Context#state{gitSh= GitShUrl, gitShDir= GitShDir},
+                    cloudrover_shutdown_manager:bootstrap_giturl_is_set(),
 					ok;
 				_OtherWise ->
 					NewContext = Context,

@@ -55,12 +55,14 @@ upgrade() ->
 %% @spec init([]) -> SupervisorTree
 %% @doc supervisor callback.
 init([]) ->
-	{ok, Dispatch} = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "dispatch.conf"])),
-	{ok, Config}   = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
-	{ok, Port}     = get_option(port, Config),
-	{ok, LogDir}   = get_option(log_dir, Config),
-	{ok, WorkDir}  = get_option(work_dir, Config),
-	{ok, PidFile}  = get_option(pid_file, Config),
+	{ok, Dispatch}    = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "dispatch.conf"])),
+	{ok, Config}      = file:consult(filename:join([filename:dirname(code:which(?MODULE)), "..", "priv", "cloudrover.conf"])),
+	{ok, Port}        = get_option(port, Config),
+	{ok, LogDir}      = get_option(log_dir, Config),
+	{ok, WorkDir}     = get_option(work_dir, Config),
+	{ok, PidFile}     = get_option(pid_file, Config),
+    {ok, ShutdownCmd} = get_option(bootstrap_shutdown_cmd, Config),
+    {ok, TimeoutSecs} = get_option(bootstrap_timeout_secs, Config),
 
 	filelib:ensure_dir(LogDir),
 	filelib:ensure_dir(WorkDir),
@@ -80,7 +82,8 @@ init([]) ->
 	],
 
     ShutdownManagerConfig = [
-        {work_dir, WorkDir}
+        {bootstrap_shutdown_cmd, ShutdownCmd},
+        {bootstrap_timeout_secs, TimeoutSecs}
     ],
 
     StateServer =
