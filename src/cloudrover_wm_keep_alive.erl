@@ -1,4 +1,3 @@
-%%-*- mode: erlang -*-
 %% @author Marcel Neuhausler
 %% @copyright 2012 Marcel Neuhausler
 %%
@@ -14,14 +13,27 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
-{port, 8000}.
+-module(cloudrover_wm_keep_alive).
+-export([init/1, allowed_methods/2, content_types_provided/2, forbidden/2, to_json/2]).
 
-{log_dir,  "priv/log/"}.
-{work_dir, "priv/var/work/"}.
-{pid_file, "priv/var/cloudrover.pid"}.
+-include_lib("webmachine/include/webmachine.hrl").
 
-{bootstrap_timeout_secs,  180}.
-{keep_alive_timeout_mins, 0}.
+-define(DICT_CMD, "dict").
 
-{shutdown_cmd, "shutdown -h now"}.
+init([]) ->
+%%	{{trace, "/tmp"}, dict:new()}.
+	{ok, dict:new()}.
+
+allowed_methods(ReqData, Context) ->
+	{['GET'], ReqData, Context}.
+
+content_types_provided(ReqData, Context) ->
+	{[{"application/json", to_json}], ReqData, Context}.
+
+forbidden(ReqData, Context) ->
+    cloudrover_wm_utils:forbidden(ReqData, Context).
+
+to_json(ReqData, Context) ->
+    cloudrover_shutdown_manager:keepalive_received(),
+	{"{}", ReqData, Context}.
 

@@ -29,12 +29,15 @@
 		accesskey_set = false,
 		giturl_set    = false,
 		shutdown_cmd,
-		bootstrap_timeout
+		bootstrap_timeout,
+        keepalive_timeout,
+        keepalive_set
 	}
 ).
 
+
 %% gen_fsm callbacks
--export([init/1, bootstrap/2, handle_event/3, handle_sync_event/4, handle_info/3, terminate/3, code_change/4]).
+-export([init/1, bootstrap/2, initalized/2, handle_event/3, handle_sync_event/4, handle_info/3, terminate/3, code_change/4]).
 
 
 %% public APIs
@@ -42,7 +45,8 @@
 	[
 		start/1,
         bootstrap_accesskey_is_set/0,
-        bootstrap_giturl_is_set/0
+        bootstrap_giturl_is_set/0,
+        keepalive_received/0
 	]).
 
 start(Config) ->
@@ -55,24 +59,36 @@ bootstrap_accesskey_is_set() ->
 bootstrap_giturl_is_set() ->
     gen_fsm:send_event(?MODULE, giturl_set).
 
+keepalive_received() ->
+    gen_fsm:send_event(?MODULE, keepalive_received).
+
+
 %% gen_fsm callbacks
 
 init(Config) ->
     error_logger:info_report("shutdown_manager init called"),
-    {ok, ShutdownCmd} = get_option(bootstrap_shutdown_cmd, Config),
-    {ok, TimeoutSecs} = get_option(bootstrap_timeout_secs, Config),
-    State = #state{shutdown_cmd = ShutdownCmd, bootstrap_timeout = TimeoutSecs},
-    erlang:send_after((State#state.bootstrap_timeout*1000), self(), check_for_shutdown),
-    {ok, bootstrap, State}.
+    {ok, ShutdownCmd}   = get_option(shutdown_cmd, Config),
+    {ok, TimeoutSecs}   = get_option(bootstrap_timeout_secs, Config),
+    {ok, KeepAliveMins} = get_option(keep_alive_timeout_mins, Config),
+    State = #state{shutdown_cmd = ShutdownCmd, bootstrap_timeout = TimeoutSecs, keepalive_timeout = KeepAliveMins},
+    set_bootstrap_timeout(State),
+    NewState = set_keepalive_timeout(State),
+    {ok, bootstrap, NewState}.
 
 bootstrap(Event, State) ->
     case Event of
         accesskey_set ->
             StateNew = State#state{accesskey_set = true};
         giturl_set ->
-            StateNew = State#state{giturl_set = true}
+            StateNew = State#state{giturl_set = true};
+        keepalive_received ->
+            StateNew = State
     end,
     {next_state, bootstrap, StateNew}.
+
+initalized(_Event, State) ->
+    StateNew = State#state{keepalive_set = true},
+    {next_state, initalized, StateNew}.
 
 handle_info(check_for_shutdown, _StateName, State) ->
     error_logger:info_report("in check_for_shutdown"),
@@ -80,9 +96,18 @@ handle_info(check_for_shutdown, _StateName, State) ->
         {true, true} ->
             {next_state, initalized, State};
         {_, _} ->
-            error_logger:info_report("will be shutting down the system"),
-            Output = cloudrover_utils:os_cmd(State#state.shutdown_cmd),
-            io:format("Output: ~p~n", [Output]),
+            shutting_down(State#state.shutdown_cmd),
+            {next_state, shutting_down, State}
+    end;
+
+handle_info(check_for_timeout, _StateName, State) ->
+    error_logger:info_report("in check_for_timeout"),
+    case State#state.keepalive_set of
+        true ->
+            NewState = set_keepalive_timeout(State),
+            {next_state, initalized, NewState};
+        false ->
+            shutting_down(State#state.shutdown_cmd),
             {next_state, shutting_down, State}
     end;
 
@@ -105,6 +130,7 @@ terminate(_Reason, _StateName, _State) ->
 code_change(_OldVsn, StateName, State, _Extra) ->
     {ok, StateName, State}.
 
+
 %% Utils
 %%
 
@@ -114,3 +140,20 @@ get_option(Option, Options) ->
         {value, {Option, Value}, _NewOptions} -> {ok, Value}
     end.
 
+set_bootstrap_timeout(State) ->
+    erlang:send_after((State#state.bootstrap_timeout*1000), self(), check_for_shutdown).
+
+set_keepalive_timeout(State) ->
+    case State#state.keepalive_timeout of
+        0 ->
+            NewState = State;
+        Timeout ->
+            erlang:send_after((Timeout*60*1000), self(), check_for_timeout),
+            NewState = State#state{keepalive_set = false}
+    end,
+    NewState.
+
+shutting_down(Shutdown_cmd) ->
+    error_logger:info_report("will be shutting down the system"),
+    Output = cloudrover_utils:os_cmd(Shutdown_cmd),
+    io:format("Output: ~p~n", [Output]).
