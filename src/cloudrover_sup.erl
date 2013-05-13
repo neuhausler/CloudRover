@@ -61,9 +61,9 @@ init([]) ->
 	{ok, LogDir}        = get_option(log_dir, Config),
 	{ok, WorkDir}       = get_option(work_dir, Config),
 	{ok, PidFile}       = get_option(pid_file, Config),
-    {ok, ShutdownCmd}   = get_option(shutdown_cmd, Config),
-    {ok, TimeoutSecs}   = get_option(bootstrap_timeout_secs, Config),
-    {ok, KeepAliveMins} = get_option(keep_alive_timeout_mins, Config),
+  {ok, ShutdownCmd}   = get_option(shutdown_cmd, Config),
+  {ok, TimeoutSecs}   = get_option(bootstrap_timeout_secs, Config),
+  {ok, KeepAliveMins} = get_option(keep_alive_timeout_mins, Config),
 
 	filelib:ensure_dir(LogDir),
 	filelib:ensure_dir(WorkDir),
@@ -82,13 +82,13 @@ init([]) ->
 		{work_dir, WorkDir}
 	],
 
-    ShutdownManagerConfig = [
-        {shutdown_cmd, ShutdownCmd},
-        {bootstrap_timeout_secs, TimeoutSecs},
-        {keep_alive_timeout_mins, KeepAliveMins}
-    ],
+  ShutdownManagerConfig = [
+    {shutdown_cmd, ShutdownCmd},
+    {bootstrap_timeout_secs, TimeoutSecs},
+    {keep_alive_timeout_mins, KeepAliveMins}
+  ],
 
-    StateServer =
+  StateServer =
 	{
 		cloudrover_stateserver,
 		{cloudrover_stateserver, start, [StateServerConfig]},
@@ -98,17 +98,17 @@ init([]) ->
 		[]
 	},
 
-    ShutdownManager =
-    {
-        cloudrover_shutdown_manager,
-        {cloudrover_shutdown_manager, start, [ShutdownManagerConfig]},
-        permanent,
-        5000,
-        worker,
-        []
-    },
+  ShutdownManager =
+  {
+    cloudrover_shutdown_manager,
+    {cloudrover_shutdown_manager, start, [ShutdownManagerConfig]},
+    permanent,
+    5000,
+    worker,
+    []
+  },
 
-    WebServer =
+  WebServer =
 	{
 		webmachine_mochiweb,
 		{webmachine_mochiweb, start, [WebConfig]},
@@ -119,7 +119,7 @@ init([]) ->
 	},
 
 	Processes = [WebServer, StateServer, ShutdownManager],
-	{ok, { {one_for_all, 10, 10}, Processes} }.
+	{ok, { {one_for_one, 10, 10}, Processes} }.
 
 
 
