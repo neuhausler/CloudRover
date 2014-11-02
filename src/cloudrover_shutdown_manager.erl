@@ -76,13 +76,13 @@ init(Config) ->
   {ok, bootstrap, NewState}.
 
 bootstrap(Event, State) ->
-  case Event of
+  StateNew = case Event of
     accesskey_set ->
-      StateNew = State#state{accesskey_set = true};
+      State#state{accesskey_set = true};
     giturl_set ->
-      StateNew = State#state{giturl_set = true};
+      State#state{giturl_set = true};
     keepalive_received ->
-      StateNew = State
+      State
   end,
   {next_state, bootstrap, StateNew}.
 
@@ -144,12 +144,12 @@ set_bootstrap_timeout(State) ->
   erlang:send_after((State#state.bootstrap_timeout * 1000), self(), check_for_shutdown).
 
 set_keepalive_timeout(State) ->
-  case State#state.keepalive_timeout of
+  NewState = case State#state.keepalive_timeout of
     0 ->
-      NewState = State;
+      State;
     Timeout ->
       erlang:send_after((Timeout * 60 * 1000), self(), check_for_timeout),
-      NewState = State#state{keepalive_set = false}
+      State#state{keepalive_set = false}
   end,
   NewState.
 
